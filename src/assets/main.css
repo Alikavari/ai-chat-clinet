@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --wui-color-fg-200: #000000 !important; /* Change foreground color */
+}
+
+/* Prevent horizontal scrolling */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Ensure the entire page content does not exceed the viewport */
+#app {
+  max-width: 100%;
+  overflow-x: hidden;
+}
