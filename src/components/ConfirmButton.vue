@@ -1,9 +1,12 @@
 <script setup lang="ts">
-  import {type ContrctNames} from '@/web3/writeContractNames';
-  import {useWriteContract} from '@wagmi/vue';
-  import {abi} from './abi';
-  import {config} from './config';
   import {w3bNumberFromNumber} from '../web3/web3';
+  import {useMuonTransfer} from '../web3/muonActions/useTransfer';
+  import {useMuonApprove} from '../web3/muonActions/useApprove';
+  import {useMuonAddNode} from '../web3/muonActions/useAddNode';
+
+  import abi from '../abis/ALICE/BSCTestnet/ALICE';
+  import abi2 from '../abis/ALICE/BSCTestnet/MuonNodeStaking';
+
   //import {writeContract} from '@wagmi/core';
   const props = defineProps<{
     toolName: string | null | undefined;
@@ -11,47 +14,39 @@
     call: (name: string) => void;
   }>();
 
-  const {writeContractAsync} = useWriteContract({});
-  // Your logic here, like fetching data, accessing DOM, etc.
+  const {tryTransfer} = useMuonTransfer(abi);
+  const {tryApprove} = useMuonApprove(abi);
+  const {tryAddNode} = useMuonAddNode(abi2);
 
   async function writeContractRun() {
-    console.log(props.toolName);
-    console.log(props.args);
+    // console.log(props.toolName);
+    // console.log(props.args);
     if (props.toolName === 'transfer' && props.args != null) {
-      console.log(props.args.value);
-      const walletAddress = props.args?.destination_wallet_address as `0x${string}`;
-      const value = props.args?.value as number;
-      console.log('the user called tranfer');
-      console.log('the bigint value: ', w3bNumberFromNumber(value).big);
-      try {
-        await writeContractAsync(
-          {
-            abi,
-            address: '0x383FA34836A5F5D3805e77df4f60A62D75034579',
-            functionName: props.toolName,
-            args: [walletAddress, w3bNumberFromNumber(value).big]
-            //chainId:
-          },
-          {
-            onError: (error, variables, context) => {
-              console.error('Error:', error.message);
-              props.call(error.message);
-            },
-            onSuccess: (data, variables, context) => {
-              console.log('Success:', data);
-              props.call('the transaction done successfully');
-            }
-          }
-        );
-      } catch {
-        //nothing
-      }
+      const valueBig = w3bNumberFromNumber(props.args.value).big;
+      const walletAddress = props.args?.destinationWalletAddress as `0x${string}`;
+      await tryTransfer(walletAddress, valueBig, props.call);
+    } else if (props.toolName === 'approve' && props.args != null) {
+      const amountBig = w3bNumberFromNumber(props.args.value).big;
+      const spenderAddress = props.args?.spenderAddress as `0x${string}`;
+      await tryApprove(spenderAddress, amountBig, props.call);
+    } else if (props.toolName === 'add_node' && props.args != null) {
+      const address = props.args?.nodeAddress;
+      const peerID = props.args?.peerID;
+      const amount = w3bNumberFromNumber(props.args?.amount).big;
+      tryAddNode(address, peerID, amount, props.call);
     }
   }
 </script>
 
 <template>
   <button @click="writeContractRun()" class="my-button">Confirm</button>
+  <button
+    @click="props.call('the operation is rejected by user')"
+    style="margin-left: 1em"
+    class="my-button"
+  >
+    Reject
+  </button>
 </template>
 
 <style>

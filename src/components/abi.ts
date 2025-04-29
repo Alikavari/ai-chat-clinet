@@ -14,3 +14,5 @@ export const abi = [
     type: 'function'
   }
 ] as const;
+
+export type AbiType = typeof abi;

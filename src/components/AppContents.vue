@@ -34,11 +34,13 @@
         onSendHideUser(`The user entered with ${address.value} wallet address `);
     }
   });
+
   let modelOutput: FinalOutput = {
     resultText: '', // Default empty string or any initial value
     functionName: null, // Default value as null
     functionArgs: null // Default value as null or you can initialize it with an empty object if needed
   };
+
   const appStore = useAppStore();
   const chatStore = useChatStore();
   const settingsStore = useSettingsStore();
@@ -103,6 +105,12 @@
       }
     }
     pending.value = false;
+    if (typeof modelOutput.functionName === 'string') {
+      pending.value = true;
+      console.log('sth');
+      inputTextarea.value?.blur();
+
+    }
   }
   async function onSendHideUser(content: string) {
     pending.value = true;
@@ -222,6 +230,7 @@
       }
     }
   );
+  inputTextarea.value?.blur();
 </script>
 
 <template>
@@ -272,9 +281,8 @@
             </template>
           </template>
         </template>
-        <div v-show="modelOutput.functionName != null">
+        <div style="margin-left: 2em" v-show="modelOutput.functionName != null">
           <IndexButton
-            style="margin-left: 2em"
             :toolName="modelOutput.functionName"
             :args="modelOutput.functionArgs"
             :call="onSendMetamask"
