@@ -13,7 +13,9 @@ let BOOSTER_ADDRESS: AddressMap;
 let PANCAKE_PAIR_ADDRESS: AddressMap;
 let MIGRATION_HELPER: AddressMap;
 
-if (import.meta.env.VITE_PROJECT_NAME === 'MUON') {
+const condition = true;
+if (condition) {
+  // todo import.meta.env.VITE_PROJECT_NAME === 'MUON'
   OLD_TOKEN_ADDRESS = {
     [SupportedChainId.BSCTESTNET]: '0xBE17C54aA9cA6C4253732dCBa66b0B62A66975e0'
   };

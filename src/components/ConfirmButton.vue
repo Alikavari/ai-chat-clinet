@@ -3,9 +3,7 @@
   import {useMuonTransfer} from '../web3/muonActions/useTransfer';
   import {useMuonApprove} from '../web3/muonActions/useApprove';
   import {useMuonAddNode} from '../web3/muonActions/useAddNode';
-
-  import abi from '../abis/ALICE/BSCTestnet/ALICE';
-  import abi2 from '../abis/ALICE/BSCTestnet/MuonNodeStaking';
+  import {useMuonUnstake} from '@/web3/muonActions/useUnstake';
 
   //import {writeContract} from '@wagmi/core';
   const props = defineProps<{
@@ -14,13 +12,12 @@
     call: (name: string) => void;
   }>();
 
-  const {tryTransfer} = useMuonTransfer(abi);
-  const {tryApprove} = useMuonApprove(abi);
-  const {tryAddNode} = useMuonAddNode(abi2);
+  const {tryTransfer} = useMuonTransfer();
+  const {tryApprove} = useMuonApprove();
+  const {tryAddNode} = useMuonAddNode();
+  const {tryUnstake} = useMuonUnstake();
 
   async function writeContractRun() {
-    // console.log(props.toolName);
-    // console.log(props.args);
     if (props.toolName === 'transfer' && props.args != null) {
       const valueBig = w3bNumberFromNumber(props.args.value).big;
       const walletAddress = props.args?.destinationWalletAddress as `0x${string}`;
@@ -34,6 +31,9 @@
       const peerID = props.args?.peerID;
       const amount = w3bNumberFromNumber(props.args?.amount).big;
       tryAddNode(address, peerID, amount, props.call);
+    } else if (props.toolName === 'unstake' && props.args != null) {
+      const amount = w3bNumberFromNumber(props.args?.amount).big;
+      tryUnstake(amount, props.call);
     }
   }
 </script>

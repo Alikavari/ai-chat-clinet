@@ -1,10 +1,14 @@
-// src/composables/useMyTransaction.ts
-import {useWriteContract} from '@wagmi/vue';
-import abi from '../../abis/ALICE/BSCTestnet/MuonNodeStaking';
+import {
+  useWriteContract,
+  useChainId,
+  config,
+  stakingAbi,
+  MUON_NODE_STAKING_ADDRESS
+} from './requriements';
 
 export function useMuonUnstake() {
   const {writeContractAsync} = useWriteContract();
-
+  const chainId = useChainId({config});
   async function tryUnstake(amount: bigint, call: (input: string) => void) {
     const someCondition = true; // Replace with your actual logic
 
@@ -16,8 +20,8 @@ export function useMuonUnstake() {
     try {
       await writeContractAsync(
         {
-          abi,
-          address: '0x383FA34836A5F5D3805e77df4f60A62D75034579',
+          abi: stakingAbi,
+          address: MUON_NODE_STAKING_ADDRESS[chainId.value],
           functionName: 'unstake',
           args: [amount]
           //chainId:

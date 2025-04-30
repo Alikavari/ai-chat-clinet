@@ -1,11 +1,17 @@
-// src/composables/useMyTransaction.ts
-import {useWriteContract} from '@wagmi/vue';
+import {
+  useWriteContract,
+  useChainId,
+  config,
+  aliceAbi as abi,
+  ALICE_ADDRESS
+} from './requriements';
 
-export function useMuonTransfer(abi: any) {
+export function useMuonTransfer() {
   const {writeContractAsync} = useWriteContract();
-
+  const chainID = useChainId({config});
+  console.log(chainID.value);
   async function tryTransfer(
-    walletAddress: string,
+    walletAddress: `0x${string}`,
     value: bigint,
     call: (input: string) => void
   ) {
@@ -17,11 +23,12 @@ export function useMuonTransfer(abi: any) {
     }
 
     try {
+      console.log('ALICE_ADDRESS', ALICE_ADDRESS);
       await writeContractAsync(
         {
           abi,
-          address: '0x383FA34836A5F5D3805e77df4f60A62D75034579',
-          functionName: 'addNode',
+          address: ALICE_ADDRESS[chainID.value],
+          functionName: 'transfer',
           args: [walletAddress, value]
           //chainId:
         },
@@ -41,7 +48,7 @@ export function useMuonTransfer(abi: any) {
       );
     } catch (err) {
       // call('Transaction failed:' + err);
-      // throw err;
+      //throw err;
     }
   }
 

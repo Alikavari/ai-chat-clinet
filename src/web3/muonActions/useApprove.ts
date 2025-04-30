@@ -1,11 +1,16 @@
-// src/composables/useMyTransaction.ts
-import {useWriteContract} from '@wagmi/vue';
+import {
+  useWriteContract,
+  useChainId,
+  config,
+  aliceAbi,
+  ALICE_ADDRESS
+} from './requriements';
 
-export function useMuonApprove(abi: any) {
+export function useMuonApprove() {
   const {writeContractAsync} = useWriteContract();
-
+  const chainID = useChainId({config});
   async function tryApprove(
-    spenderAddress: string,
+    spenderAddress: `0x${string}`,
     amount: bigint,
     call: (input: string) => void
   ) {
@@ -19,8 +24,8 @@ export function useMuonApprove(abi: any) {
     try {
       await writeContractAsync(
         {
-          abi,
-          address: '0x383FA34836A5F5D3805e77df4f60A62D75034579',
+          abi: aliceAbi,
+          address: ALICE_ADDRESS[chainID.value],
           functionName: 'approve',
           args: [spenderAddress, amount]
           //chainId:

@@ -11,7 +11,7 @@
   import {useAppStore} from '@/stores/app.store';
   import IndexButton from '@/components/ConfirmButton.vue';
   import SendButton from './SendButton.vue';
-  import {config} from './config';
+  import {config} from '../config';
   import {useAccount} from '@wagmi/vue';
   import {type TransferArgs} from '../web3/writeContractArgs';
   const isVisible = ref(false); // Define the reactive variable

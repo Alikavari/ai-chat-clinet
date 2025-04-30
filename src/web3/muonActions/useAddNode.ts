@@ -1,10 +1,16 @@
-import {useWriteContract} from '@wagmi/vue';
-//import {MUON_NODE_STAKING_ADDRESS} from '../../addresses';
-export function useMuonAddNode(abi: any) {
-  const {writeContractAsync} = useWriteContract();
+import {
+  useWriteContract,
+  useChainId,
+  config,
+  stakingAbi as abi,
+  MUON_NODE_STAKING_ADDRESS
+} from './requriements';
 
+export function useMuonAddNode() {
+  const {writeContractAsync} = useWriteContract();
+  const chainID = useChainId({config});
   async function tryAddNode(
-    nodeAddress: string,
+    nodeAddress: `0x${string}`,
     nodeIp: string,
     amount: bigint,
     call: (input: string) => void
@@ -20,7 +26,7 @@ export function useMuonAddNode(abi: any) {
       await writeContractAsync(
         {
           abi,
-          address: '0xcb6f8f4eaa80148d16d08543b84770d71d7bcd7f', // MUON_NODE_STAKING_ADDRESS[43113],
+          address: MUON_NODE_STAKING_ADDRESS[chainID.value], // MUON_NODE_STAKING_ADDRESS[43113],
           functionName: 'addMuonNodeByToken',
           args: [nodeAddress, nodeIp, amount]
           //chainId:
