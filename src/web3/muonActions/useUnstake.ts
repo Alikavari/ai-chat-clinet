@@ -1,15 +1,22 @@
+import MuonNodeStaking from '@/abis/ALICE/BSCTestnet/MuonNodeStaking';
 import {
   useWriteContract,
   useChainId,
   config,
   stakingAbi,
-  MUON_NODE_STAKING_ADDRESS
+  MUON_NODE_STAKING_ADDRESS,
+  getclimableTime,
+  readContract
 } from './requriements';
 
 export function useMuonUnstake() {
   const {writeContractAsync} = useWriteContract();
-  const chainId = useChainId({config});
-  async function tryUnstake(amount: bigint, call: (input: string) => void) {
+  const chainID = useChainId({config});
+  async function tryUnstake(
+    userWalletAddress: `0x${string}`,
+    amount: bigint,
+    call: (input: string) => void
+  ) {
     const someCondition = true; // Replace with your actual logic
 
     if (!someCondition) {
@@ -21,7 +28,7 @@ export function useMuonUnstake() {
       await writeContractAsync(
         {
           abi: stakingAbi,
-          address: MUON_NODE_STAKING_ADDRESS[chainId.value],
+          address: MUON_NODE_STAKING_ADDRESS[chainID.value],
           functionName: 'unstake',
           args: [amount]
           //chainId:
@@ -33,9 +40,11 @@ export function useMuonUnstake() {
               `The transaction was done unsuccessfully due to  this error ${error.message}`
             );
           },
-          onSuccess: (data, variables, context) => {
+          onSuccess: async (data, variables, context) => {
+            const formattedDate = await getclimableTime(chainID.value, userWalletAddress);
+            console.log(formattedDate);
             call(
-              `The transaction was completed successfully with the transaction hash: ${data}`
+              `The transaction was completed successfully with the transaction hash: ${data}\n the user can claim its coins in ${formattedDate}`
             );
           }
         }

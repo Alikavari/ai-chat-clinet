@@ -3,17 +3,14 @@ import {
   useChainId,
   config,
   aliceAbi,
-  ALICE_ADDRESS
+  ALICE_ADDRESS,
+  MUON_NODE_STAKING_ADDRESS
 } from './requriements';
 
 export function useMuonApprove() {
   const {writeContractAsync} = useWriteContract();
   const chainID = useChainId({config});
-  async function tryApprove(
-    spenderAddress: `0x${string}`,
-    amount: bigint,
-    call: (input: string) => void
-  ) {
+  async function tryApprove(amount: bigint, call: (input: string) => void) {
     const someCondition = true; // Replace with your actual logic
 
     if (!someCondition) {
@@ -27,7 +24,7 @@ export function useMuonApprove() {
           abi: aliceAbi,
           address: ALICE_ADDRESS[chainID.value],
           functionName: 'approve',
-          args: [spenderAddress, amount]
+          args: [MUON_NODE_STAKING_ADDRESS[chainID.value], amount]
           //chainId:
         },
         {

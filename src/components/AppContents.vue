@@ -20,7 +20,7 @@
   const inputTextarea = ref<HTMLTextAreaElement | null>(null);
   const scrollingDiv = ref<HTMLElement | null>(null);
   const scrollContainer = ref<HTMLElement | null>(null);
-
+  let userWalletAddress: `0x${string}` | undefined = undefined;
   const userScrolled = ref(false);
   const pending = ref(false);
   import {type ContrctNames} from '@/web3/writeContractNames';
@@ -32,6 +32,7 @@
       console.log('address', address.value);
       if (newVal === 'connected')
         onSendHideUser(`The user entered with ${address.value} wallet address `);
+      userWalletAddress = address.value;
     }
   });
 
@@ -109,7 +110,6 @@
       pending.value = true;
       console.log('sth');
       inputTextarea.value?.blur();
-
     }
   }
   async function onSendHideUser(content: string) {
@@ -285,6 +285,7 @@
           <IndexButton
             :toolName="modelOutput.functionName"
             :args="modelOutput.functionArgs"
+            :userWalletAddress="userWalletAddress"
             :call="onSendMetamask"
           />
         </div>
@@ -407,12 +408,6 @@
       list-style-type: decimal;
       margin-left: 2rem;
     }
-
-    td,
-    th {
-      border: 1px solid black;
-      padding: 5px;
-    }
   }
   .child {
     position: absolute;
@@ -464,8 +459,30 @@
     overflow-wrap: break-word; /* Ensure words break to fit inside */
   }
   table {
-    overflow-x: auto;
-    display: block;
-    white-space: nowrap;
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+  thead {
+    text-align: left;
+  }
+  th,
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  th {
+    font-weight: 600;
+    color: #000;
+  }
+  td {
+    color: #333;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  .container {
+    max-width: 800px;
+    margin: auto;
   }
 </style>

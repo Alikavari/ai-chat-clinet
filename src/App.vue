@@ -32,7 +32,7 @@
 <template>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <div style="background-image: url('/bg.png')" class="flex flex-col h-screen">
+  <div class="flex flex-col h-screen">
     <AppHeader />
     <div class="flex flex-1 overflow-hidden">
       <AppContents />
