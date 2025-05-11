@@ -40,7 +40,7 @@ export function useMuonAddNode() {
           },
           onSuccess: (data, variables, context) => {
             call(
-              `The transaction was completed successfully with the transaction hash: ${data}`
+              `The transaction was completed successfully with the transaction hash: ${data} `
             );
           }
         }

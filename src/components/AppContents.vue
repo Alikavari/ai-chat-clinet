@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import {computed, onMounted, ref, watch} from 'vue';
+  import {computed, onMounted, ref, watch, nextTick} from 'vue';
   import OpenAI from 'openai';
   import type {ChatCompletionMessageParam} from 'openai/resources/chat/completions';
   import {Role} from '@/models/role.model';
@@ -14,6 +14,14 @@
   import {config} from '../config';
   import {useAccount} from '@wagmi/vue';
   import {type TransferArgs} from '../web3/writeContractArgs';
+  import {getTimezoneBias} from '../toolkits/timeBias';
+
+  // Load environment variables from the .env file
+
+  // Now you can access the environment variable
+  const chatTitle = import.meta.env.VITE_PROJECT_CHATBOT_TITLE;
+  const textBoxPlaceHolderBegin = import.meta.env.VITE_PROJECT_PLACEHOLDER_BEGIN;
+  const textBoxPlaceHolderPending = import.meta.env.VITE_PROJECT_PLACEHOLDER_PENDING;
   const isVisible = ref(false); // Define the reactive variable
   const input = ref('');
   const numOfInputRows = ref(1);
@@ -31,7 +39,10 @@
       console.log('connection status :', newVal);
       console.log('address', address.value);
       if (newVal === 'connected')
-        onSendHideUser(`The user entered with ${address.value} wallet address `);
+        onSendHideUser(
+          `The user entered with ${address.value} wallet address, the user local time zone is ${getTimezoneBias()}`
+        );
+      console.log(getTimezoneBias());
       userWalletAddress = address.value;
     }
   });
@@ -78,6 +89,7 @@
   );
   onMounted(() => {
     setTimeout(() => inputTextarea.value?.focus(), 100);
+    setTimeout(() => console.log(inputTextarea.value), 200);
   });
 
   const openai = new OpenAI({
@@ -90,11 +102,12 @@
     pending.value = true;
     isVisible.value = false;
     try {
+      const timsStamp = Math.trunc(Date.now() / 1000);
       userScrolled.value = false;
       inputTextarea.value?.blur();
       await chatStore.addMessage({
         role: Role.user,
-        content: input.value
+        content: input.value + `\n\n##MEESAGE_TIMESTAMP==${timsStamp}`
       });
       autoScrollDown();
       sendRequestForTitle(input.value);
@@ -106,6 +119,8 @@
       }
     }
     pending.value = false;
+    await nextTick();
+    inputTextarea.value?.focus();
     if (typeof modelOutput.functionName === 'string') {
       pending.value = true;
       console.log('sth');
@@ -116,11 +131,12 @@
     pending.value = true;
     isVisible.value = false;
     try {
+      const timsStamp = Math.trunc(Date.now() / 1000);
       userScrolled.value = false;
       inputTextarea.value?.blur();
       await chatStore.addMessage({
         role: Role.hideUser,
-        content: content
+        content: content + `\n\n##MEESAGE_TIMESTAMP==${timsStamp}`
       });
       autoScrollDown();
       sendRequestForTitle(input.value);
@@ -132,6 +148,8 @@
       }
     }
     pending.value = false;
+    await nextTick;
+    inputTextarea.value?.focus();
   }
   async function onSendMetamask(metamaskMessage: string) {
     pending.value = true;
@@ -155,6 +173,8 @@
       }
     }
     pending.value = false;
+    await nextTick;
+    inputTextarea.value?.focus();
   }
 
   async function sendRequestForTitle(message: string) {
@@ -230,7 +250,20 @@
       }
     }
   );
-  inputTextarea.value?.blur();
+  const handleEnter = (event: any) => {
+    if (event.shiftKey) return; // Allow newline with Shift+Enter
+
+    event.preventDefault(); // Prevent newline on regular Enter
+    onSend();
+  };
+
+  function removeMessageTimestamp(text: string): string {
+    const index = text.indexOf('\n\n##MEESAGE_TIMESTAMP==');
+    if (index !== -1) {
+      return text.substring(0, index);
+    }
+    return text;
+  }
 </script>
 
 <template>
@@ -249,7 +282,7 @@
       {{ error.message }}
     </fwb-alert>
     <p v-show="isChatEmpty" class="text-center text-2xl font-bold font-arial">
-      How can i help you with crypto.
+      {{ chatTitle }}
     </p>
     <div ref="scrollContainer" v-show="!isChatEmpty" class="main-container">
       <main
@@ -267,7 +300,7 @@
                 <div
                   :style="{backgroundColor: 'rgba(200, 200, 200,0.5)'}"
                   class="bg-gray-100 py-2 px-3 rounded mb-4 message-content message"
-                  v-html="md.render(message.content)"
+                  v-html="md.render(removeMessageTimestamp(message.content))"
                 />
               </div>
             </template>
@@ -303,10 +336,10 @@
           class="p-2 text-gray-900 bg-gray-50 rounded border border-gray-300 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white flex-1"
           style="resize: none; box-shadow: none; border: none"
           :rows="numOfInputRows"
-          :placeholder="pending ? 'Answering...' : `Chat with muon...`"
+          :placeholder="pending ? textBoxPlaceHolderPending : textBoxPlaceHolderBegin"
           ref="inputTextarea"
           v-model="input"
-          @keydown.enter="onSend"
+          @keydown.enter="handleEnter"
           :disabled="!isInputEnabled"
         />
         <SendButton :disabled="false" :isSending="pending" @Click="onSend" class="ml-2" />
@@ -462,6 +495,10 @@
     width: 100%;
     border-collapse: collapse;
     border-spacing: 0;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%;
   }
   thead {
     text-align: left;

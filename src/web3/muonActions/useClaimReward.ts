@@ -1,4 +1,3 @@
-import MuonNodeStaking from '@/abis/ALICE/BSCTestnet/MuonNodeStaking';
 import {
   useWriteContract,
   useChainId,
@@ -8,32 +7,52 @@ import {
   readContract
 } from './requriements';
 
-export function useMuonCaliming() {
+import {useBlockNumber} from '@wagmi/vue';
+import fetchRewardData from '../../toolkits/fetchRewardData';
+export function useMuonCalimingReward() {
   const {writeContractAsync} = useWriteContract();
+  const {data: blockNumber} = useBlockNumber();
+
   const chainID = useChainId({config});
-  async function tryClaim(
+  async function tryClaimReward(
     userWalletAddress: `0x${string}`,
     call: (input: string) => void
   ) {
     const pendingUnstakes = await readContract(config, {
       abi: stakingAbi,
       address: MUON_NODE_STAKING_ADDRESS[chainID.value],
-      functionName: 'pendingUnstakes',
+      functionName: 'earned',
       args: [userWalletAddress]
     });
     console.log(pendingUnstakes);
     if (pendingUnstakes <= 0) {
-      call('The transaction was done unsuccessfully. no pending unstake to claim');
+      call(
+        'The transaction was unsuccessful because there are no earned rewards to claim.'
+      );
       return;
     }
 
     try {
+      const response = await fetchRewardData(userWalletAddress, blockNumber);
+      if (response === false) {
+        call('The transaction was done unsuccessfully due to an unspecified problem');
+        return;
+      }
       await writeContractAsync(
         {
           abi: stakingAbi,
           address: MUON_NODE_STAKING_ADDRESS[chainID.value],
-          functionName: 'claimUnstake',
-          args: []
+          functionName: 'getReward',
+          args: [
+            response.amount,
+            response.paidRewardPerToken,
+            response.reqId,
+            {
+              signature: response.signature,
+              owner: response.owner,
+              nonce: response.nonce
+            }
+          ]
           //chainId:
         },
         {
@@ -57,6 +76,6 @@ export function useMuonCaliming() {
   }
 
   return {
-    tryClaim
+    tryClaimReward
   };
 }

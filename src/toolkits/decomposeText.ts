@@ -51,7 +51,7 @@ function decomposeContent(input: string): {
 
 function generateMarkdownTableFromArguments(argumentsJson: string): string {
   const argsObj = JSON.parse(argumentsJson) as Record<string, any>;
-  let table = '| Key | Value |\n| --- | ----- |\n';
+  let table = '| Parameter | Value |\n| --- | ----- |\n';
   for (const [k, v] of Object.entries(argsObj)) {
     table += `| ${k} | ${v} |\n`;
   }
@@ -64,12 +64,16 @@ export function parseResponse(input: string): FinalOutput {
   if (additionalKwargs.tool_calls?.length) {
     const fn = additionalKwargs.tool_calls[0].function;
     const argsObj = JSON.parse(fn.arguments);
-    const mdTable = generateMarkdownTableFromArguments(fn.arguments);
+    const argsLength = Object.keys(argsObj).length;
+    console.log(argsObj);
+    let mdTable = generateMarkdownTableFromArguments(fn.arguments);
+    let confirm_message = `\n\nPlease confirm the information below to proceed with  \`${fn.name}\`:\n\n`;
+    if (argsLength == 0) {
+      mdTable = '';
+      confirm_message = '\n\n';
+    }
     return {
-      resultText:
-        content +
-        `\n\nPlease confirm the information below to proceed with  \`${fn.name}\`:\n\n` +
-        mdTable,
+      resultText: content + confirm_message + mdTable,
       functionName: fn.name,
       functionArgs: argsObj
     };

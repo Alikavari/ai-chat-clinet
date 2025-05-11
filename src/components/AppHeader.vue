@@ -1,7 +1,6 @@
 <script setup lang="ts">
   import {useAppStore} from '@/stores/app.store';
   import {Bars3Icon} from '@heroicons/vue/24/outline';
-  import {Cog6ToothIcon} from '@heroicons/vue/24/outline';
   import {QuestionMarkCircleIcon} from '@heroicons/vue/24/outline';
   import {useSettingsStore} from '@/stores/settings.store';
 
@@ -15,11 +14,8 @@
   <div class="p-2 flex justify-between items-center">
     <!-- Left Icons Section -->
     <div class="left-icons">
-      <div v-show="false" title="Toggle sidebar">
-        <Bars3Icon
-          class="h-6 w-6 text-gray-500 cursor-pointer hover:text-blue-600"
-          @click="appStore.toggleSidebar()"
-        />
+      <div v-show="true" title="Toggle sidebar">
+        <img src="/muonLogo.svg" alt="My Image" />
       </div>
     </div>
 

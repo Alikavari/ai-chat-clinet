@@ -44,7 +44,7 @@ export function useMuonUnstake() {
             const formattedDate = await getclimableTime(chainID.value, userWalletAddress);
             console.log(formattedDate);
             call(
-              `The transaction was completed successfully with the transaction hash: ${data}\n the user can claim its coins in ${formattedDate}`
+              `The transaction was completed successfully with the transaction hash: ${data}\n You can claim it in two weeks.`
             );
           }
         }
