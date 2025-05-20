@@ -41,9 +41,10 @@
       await tryApprove(amountBig, props.call);
     } else if (props.toolName === 'add_node' && props.args != null) {
       const address = props.args?.nodeAddress;
+      const nodeIP = props.args?.nodeIP;
       const peerID = props.args?.peerID;
       const amount = w3bNumberFromNumber(props.args?.amount).big;
-      tryAddNode(address, peerID, amount, props.call);
+      tryAddNode(address, nodeIP, amount, peerID, props.call);
     } else if (props.toolName === 'unstake' && props.args != null) {
       if (props.userWalletAddress != undefined) {
         const amount = w3bNumberFromNumber(props.args?.amount).big;

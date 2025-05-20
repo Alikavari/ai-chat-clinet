@@ -5,14 +5,16 @@ import {
   stakingAbi as abi,
   MUON_NODE_STAKING_ADDRESS
 } from './requriements';
+import {checkIPwithNodeSpecificationsAPI} from '../../apis';
 
 export function useMuonAddNode() {
   const {writeContractAsync} = useWriteContract();
   const chainID = useChainId({config});
   async function tryAddNode(
     nodeAddress: `0x${string}`,
-    nodeIp: string,
+    nodeIP: string,
     amount: bigint,
+    peerID: string,
     call: (input: string) => void
   ) {
     const someCondition = true; // Replace with your actual logic
@@ -23,12 +25,21 @@ export function useMuonAddNode() {
     }
 
     try {
+      // const response = await checkIPwithNodeSpecificationsAPI({
+      //   nodeIP: nodeIP,
+      //   peerID: peerID,
+      //   nodeAddress: nodeAddress
+      // });
+      // if (!response.success) {
+      //   call('The transaction was done unsuccessfully, something went wrong');
+      //   return;
+      // }
       await writeContractAsync(
         {
           abi,
           address: MUON_NODE_STAKING_ADDRESS[chainID.value], // MUON_NODE_STAKING_ADDRESS[43113],
           functionName: 'addMuonNodeByToken',
-          args: [nodeAddress, nodeIp, amount]
+          args: [nodeAddress, peerID, amount]
           //chainId:
         },
         {

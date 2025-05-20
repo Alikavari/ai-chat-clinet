@@ -31,8 +31,13 @@
   let userWalletAddress: `0x${string}` | undefined = undefined;
   const userScrolled = ref(false);
   const pending = ref(false);
+  const beforeFirstMessage = ref({
+    content: import.meta.env.VITE_PROJECT_PREDEFINED_MESSAGES,
+    condition: false
+  });
   import {type ContrctNames} from '@/web3/writeContractNames';
   import {type FinalOutput, parseResponse} from '@/toolkits/decomposeText';
+  import {flame} from 'viem/chains';
   const {status, address} = useAccount();
   watch(status, (newVal) => {
     if (newVal) {
@@ -40,7 +45,7 @@
       console.log('address', address.value);
       if (newVal === 'connected')
         onSendHideUser(
-          `The user entered with ${address.value} wallet address, the user local time zone is ${getTimezoneBias()}`
+          `The user entered with ${address.value} wallet address, the user local time zone is ${getTimezoneBias()} run wellcome_message`
         );
       console.log(getTimezoneBias());
       userWalletAddress = address.value;
@@ -128,6 +133,7 @@
     }
   }
   async function onSendHideUser(content: string) {
+    beforeFirstMessage.value.condition = true;
     pending.value = true;
     isVisible.value = false;
     try {
@@ -147,6 +153,7 @@
         appStore.addError(e.message);
       }
     }
+    beforeFirstMessage.value.condition = false;
     pending.value = false;
     await nextTick;
     inputTextarea.value?.focus();
@@ -284,12 +291,16 @@
     <p v-show="isChatEmpty" class="text-center text-2xl font-bold font-arial">
       {{ chatTitle }}
     </p>
+
     <div ref="scrollContainer" v-show="!isChatEmpty" class="main-container">
       <main
         class="flex-1 p-4 chat-container"
         ref="scrollingDiv"
         @scroll="checkIfUserScrolled()"
       >
+        <div v-show="beforeFirstMessage.condition">
+          {{ beforeFirstMessage.content }}
+        </div>
         <template v-if="chatStore.currentChat">
           <template
             v-for="(message, index) in chatStore.currentChat.messages"
@@ -521,5 +532,13 @@
   .container {
     max-width: 800px;
     margin: auto;
+  }
+  .transparent-box {
+    width: auto;
+    height: 40px;
+    background-color: rgba(17, 0, 255, 0.5); /* red with 50% transparency */
+    color: rgb(250, 250, 250);
+    padding: 10px;
+    border-radius: 8px;
   }
 </style>
