@@ -12,10 +12,10 @@
   import IndexButton from '@/components/ConfirmButton.vue';
   import SendButton from './SendButton.vue';
   import {config} from '../config';
-  import {useAccount} from '@wagmi/vue';
+  import {useAccount, useChainId} from '@wagmi/vue';
   import {type TransferArgs} from '../web3/writeContractArgs';
   import {getTimezoneBias} from '../toolkits/timeBias';
-
+  import {onWalletConnet} from '../toolkits/connectWalletMessage';
   // Load environment variables from the .env file
 
   // Now you can access the environment variable
@@ -24,6 +24,7 @@
   const textBoxPlaceHolderPending = import.meta.env.VITE_PROJECT_PLACEHOLDER_PENDING;
   const isVisible = ref(false); // Define the reactive variable
   const input = ref('');
+  const showChatbox = ref(true);
   const numOfInputRows = ref(1);
   const inputTextarea = ref<HTMLTextAreaElement | null>(null);
   const scrollingDiv = ref<HTMLElement | null>(null);
@@ -35,19 +36,28 @@
     content: import.meta.env.VITE_PROJECT_PREDEFINED_MESSAGES,
     condition: false
   });
+
   import {type ContrctNames} from '@/web3/writeContractNames';
   import {type FinalOutput, parseResponse} from '@/toolkits/decomposeText';
-  import {flame} from 'viem/chains';
+  import {alephZeroTestnet, flame} from 'viem/chains';
   const {status, address} = useAccount();
-  watch(status, (newVal) => {
+  const chainId = useChainId({config});
+  watch(status, async (newVal, preVal) => {
     if (newVal) {
       console.log('connection status :', newVal);
       console.log('address', address.value);
+      console.log(preVal);
       if (newVal === 'connected')
-        onSendHideUser(
-          `The user entered with ${address.value} wallet address, the user local time zone is ${getTimezoneBias()} run wellcome_message`
+        await onSendHideUser(
+          `Event:The user entered with ${address.value} wallet address, run handle_wallet_connect tool, user timezone: +3:30, `
         );
-      console.log(getTimezoneBias());
+      if (newVal === 'disconnected' && preVal == 'connected') {
+        appStore.addError(
+          'You have disconnected your wallet. refresh page and connect wallet'
+        );
+        showChatbox.value = false;
+        //pass
+      }
       userWalletAddress = address.value;
     }
   });
@@ -112,7 +122,7 @@
       inputTextarea.value?.blur();
       await chatStore.addMessage({
         role: Role.user,
-        content: input.value + `\n\n##MEESAGE_TIMESTAMP==${timsStamp}`
+        content: input.value //+ `\n\n##MEESAGE_TIMESTAMP==${timsStamp}`
       });
       autoScrollDown();
       sendRequestForTitle(input.value);
@@ -142,12 +152,19 @@
       inputTextarea.value?.blur();
       await chatStore.addMessage({
         role: Role.hideUser,
-        content: content + `\n\n##MEESAGE_TIMESTAMP==${timsStamp}`
+        content: content //+`\n\n##MEESAGE_TIMESTAMP==${timsStamp}`
       });
       autoScrollDown();
-      sendRequestForTitle(input.value);
+      //sendRequestForTitle(input.value);
       input.value = '';
-      await sendRequestForResponse();
+      //await sendRequestForResponse();
+      const messageout = await onWalletConnet(
+        address.value as `0x${string}`,
+        chainId.value
+      );
+      await chatStore.updateLastMessageStream(
+        `Thanks for connecting your wallet!  ${messageout} \n\n##ADDITIONAL_KWARGS=={"refusal": None} `
+      );
     } catch (e) {
       if (e instanceof Error) {
         appStore.addError(e.message);
@@ -155,7 +172,7 @@
     }
     beforeFirstMessage.value.condition = false;
     pending.value = false;
-    await nextTick;
+    await nextTick();
     inputTextarea.value?.focus();
   }
   async function onSendMetamask(metamaskMessage: string) {
@@ -180,7 +197,7 @@
       }
     }
     pending.value = false;
-    await nextTick;
+    await nextTick();
     inputTextarea.value?.focus();
   }
 
@@ -212,7 +229,6 @@
         max_tokens: +settingsStore.maxTokens,
         stream: true
       });
-
       for await (const chunk of stream) {
         let content = chunk.choices[0]?.delta?.content || ' ';
         try {
@@ -341,6 +357,7 @@
       @focusout="numOfInputRows = 1"
     >
       <div
+        v-show="showChatbox"
         class="p-2 overflow-x-hidden w-full text-gray-900 bg-gray-50 rounded-xl border border-gray-300 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white flex items-center"
       >
         <textarea

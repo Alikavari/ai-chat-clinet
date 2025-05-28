@@ -17,7 +17,7 @@ export function useMuonBoost() {
     boostAmount: bigint,
     call: (input: string) => void
   ) {
-    const allowanceAmount = await readContract(config, {
+    const allowanceAmount = await readContract(config as any, {
       abi: aliceAbi,
       address: ALICE_ADDRESS[chainID.value],
       functionName: 'allowance',

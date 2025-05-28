@@ -37,14 +37,14 @@ export function useMuonUnstake() {
           onError: (error, variables, context) => {
             console.error('Error:', error.message);
             call(
-              `The transaction was done unsuccessfully due to  this error ${error.message}`
+              `The transaction was done unsuccessfully due to this error ${error.message}`
             );
           },
           onSuccess: async (data, variables, context) => {
             const formattedDate = await getclimableTime(chainID.value, userWalletAddress);
             console.log(formattedDate);
             call(
-              `The transaction was completed successfully with the transaction hash: ${data}\n You can claim it in two weeks.`
+              `Transaction succeeded with hash ${data}. Claim available in two weeks.`
             );
           }
         }

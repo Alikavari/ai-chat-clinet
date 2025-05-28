@@ -33,11 +33,11 @@
   async function writeContractRun() {
     console.log(props.userWalletAddress);
     if (props.toolName === 'transfer' && props.args != null) {
-      const valueBig = w3bNumberFromNumber(props.args.value).big;
+      const valueBig = w3bNumberFromNumber(props.args.amount).big;
       const walletAddress = props.args?.destinationWalletAddress as `0x${string}`;
       await tryTransfer(walletAddress, valueBig, props.call);
     } else if (props.toolName === 'approve' && props.args != null) {
-      const amountBig = w3bNumberFromNumber(props.args.value).big;
+      const amountBig = w3bNumberFromNumber(props.args.amount).big;
       await tryApprove(amountBig, props.call);
     } else if (props.toolName === 'add_node' && props.args != null) {
       const address = props.args?.nodeAddress;
