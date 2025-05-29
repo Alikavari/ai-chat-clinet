@@ -19,6 +19,8 @@
   // Load environment variables from the .env file
 
   // Now you can access the environment variable
+  let llmResponse: Message[];
+  let llmLastResponse: Message = {role: 'null', content: 'null'};
   const chatTitle = import.meta.env.VITE_PROJECT_CHATBOT_TITLE;
   const textBoxPlaceHolderBegin = import.meta.env.VITE_PROJECT_PLACEHOLDER_BEGIN;
   const textBoxPlaceHolderPending = import.meta.env.VITE_PROJECT_PLACEHOLDER_PENDING;
@@ -40,6 +42,7 @@
   import {type ContrctNames} from '@/web3/writeContractNames';
   import {type FinalOutput, parseResponse} from '@/toolkits/decomposeText';
   import {alephZeroTestnet, flame} from 'viem/chains';
+  import type {Message} from '@/models/message.model';
   const {status, address} = useAccount();
   const chainId = useChainId({config});
   watch(status, async (newVal, preVal) => {
@@ -61,7 +64,20 @@
       userWalletAddress = address.value;
     }
   });
-
+  function generateMarkdownTableFromArguments(argsObj: object): string {
+    let table = '| Parameter | Value |\n| --- | ----- |\n';
+    for (const [k, v] of Object.entries(argsObj)) {
+      table += `| ${k} | ${v} |\n`;
+    }
+    return table;
+  }
+  interface ResMessageModel {
+    role: string;
+    content: any;
+    tool_calls?: any[] | null;
+    name?: string | null;
+    tool_call_id?: string | null;
+  }
   let modelOutput: FinalOutput = {
     resultText: '', // Default empty string or any initial value
     functionName: null, // Default value as null
@@ -163,7 +179,7 @@
         chainId.value
       );
       await chatStore.updateLastMessageStream(
-        `Thanks for connecting your wallet!  ${messageout} \n\n##ADDITIONAL_KWARGS=={"refusal": None} `
+        `Thanks for connecting your wallet!  ${messageout}`
       );
     } catch (e) {
       if (e instanceof Error) {
@@ -184,8 +200,10 @@
       let len = chatStore.currentChat?.messages.length as number;
       console.log(chatStore.currentChat?.messages[len - 1].content);
       await chatStore.addMessage({
-        role: 'metaMask',
-        content: metamaskMessage + chatStore.currentChat?.messages[len - 1].content
+        role: 'tool',
+        content: metamaskMessage,
+        name: (chatStore.currentChat?.messages[len - 1].tool_calls as [any])[0].name,
+        tool_call_id: (chatStore.currentChat?.messages[len - 1].tool_calls as [any])[0].id
       });
       autoScrollDown();
       sendRequestForTitle(input.value);
@@ -231,14 +249,30 @@
       });
       for await (const chunk of stream) {
         let content = chunk.choices[0]?.delta?.content || ' ';
-        try {
-          modelOutput = parseResponse(content);
-        } catch {
-          //nothing
-        }
-        console.log(content);
 
-        await chatStore.updateLastMessageStream(content);
+        llmResponse = JSON.parse(content);
+        console.log('content:\n', llmResponse);
+        for (const message of llmResponse) {
+          if (
+            message.role === Role.assistant &&
+            message.tool_calls != null &&
+            message.tool_calls.length > 0 &&
+            message.tool_calls[0]['name'] == 'get_variables'
+          ) {
+            console.log('the tool calls', message.tool_calls);
+            message.role = 'hideAssistant';
+          }
+          console.log(message.tool_calls);
+          await chatStore.addMessage({
+            role: message.role,
+            content: message.content + ' ',
+            tool_calls: message.tool_calls,
+            tool_call_id: message.tool_call_id
+          });
+          console.log(chatStore.currentChat.messages);
+        }
+        llmLastResponse = llmResponse[llmResponse.length - 1];
+
         autoScrollDown();
         break;
       }
@@ -280,12 +314,59 @@
     onSend();
   };
 
-  function removeMessageTimestamp(text: string): string {
-    const index = text.indexOf('\n\n##MEESAGE_TIMESTAMP==');
-    if (index !== -1) {
-      return text.substring(0, index);
+  function showConfirmationMessage(message: Message): string {
+    console.log();
+    if (
+      message.tool_calls === undefined ||
+      message.tool_calls === null ||
+      message.tool_calls?.length === 0
+    ) {
+      console.log('content', message.content);
+      return message.content as string;
     }
-    return text;
+    return (
+      message.content +
+      `\nPlease confirm the information below to proceed with  \`${message.tool_calls[0]['name']}\`:\n\n` +
+      generateMarkdownTableFromArguments(message.tool_calls[0]['args'])
+    );
+  }
+  function gettingToolName(message: Message) {
+    if (
+      message === undefined ||
+      message.tool_calls === undefined ||
+      message.tool_calls === null ||
+      message.tool_calls?.length === 0
+    ) {
+      console.log(message);
+      return 'undefined';
+    }
+    console.log(message.role);
+    return message.tool_calls[0]['name'];
+  }
+
+  function gettingToolArgs(message: Message) {
+    if (
+      message === undefined ||
+      message.tool_calls == undefined ||
+      message.tool_calls == null ||
+      message.tool_calls?.length === 0
+    ) {
+      return {};
+    }
+
+    return message.tool_calls[0]['args'];
+  }
+  function containsTool(message: Message) {
+    if (
+      message === undefined ||
+      message.tool_calls == undefined ||
+      message.tool_calls == null ||
+      message.tool_calls?.length === 0
+    ) {
+      return false;
+    }
+
+    return true;
   }
 </script>
 
@@ -327,24 +408,25 @@
                 <div
                   :style="{backgroundColor: 'rgba(200, 200, 200,0.5)'}"
                   class="bg-gray-100 py-2 px-3 rounded mb-4 message-content message"
-                  v-html="md.render(removeMessageTimestamp(message.content))"
+                  v-html="md.render(message.content)"
                 />
               </div>
             </template>
+
             <template v-if="message.content && message.role === Role.assistant">
               <div class="inner-content">
                 <div
                   class="py-2 px-3 rounded mb-4 ml-5 message-content"
-                  v-html="md.render(parseResponse(message.content).resultText)"
+                  v-html="md.render(showConfirmationMessage(message))"
                 />
               </div>
             </template>
           </template>
         </template>
-        <div style="margin-left: 2em" v-show="modelOutput.functionName != null">
+        <div style="margin-left: 2em" v-show="containsTool(llmLastResponse)">
           <IndexButton
-            :toolName="modelOutput.functionName"
-            :args="modelOutput.functionArgs"
+            :toolName="gettingToolName(llmLastResponse)"
+            :args="gettingToolArgs(llmLastResponse)"
             :userWalletAddress="userWalletAddress"
             :call="onSendMetamask"
           />
