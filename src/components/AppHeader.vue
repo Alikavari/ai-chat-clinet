@@ -30,13 +30,13 @@
           @click="settingsStore.showSettings()"
         />
       </div> -->
-      <div title="About">
+      <!-- <div title="About">
         <QuestionMarkCircleIcon
           style="color: #2f4f4f"
           class="h-6 w-6 cursor-pointer hover:text-blue-600"
           @click="appStore.showAbout()"
         />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

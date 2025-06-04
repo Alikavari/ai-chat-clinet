@@ -15,7 +15,7 @@ export function useMuonCaliming() {
     userWalletAddress: `0x${string}`,
     call: (input: string) => void
   ) {
-    const pendingUnstakes = await readContract(config, {
+    const pendingUnstakes = await readContract(config as any, {
       abi: stakingAbi,
       address: MUON_NODE_STAKING_ADDRESS[chainID.value],
       functionName: 'pendingUnstakes',
@@ -39,9 +39,7 @@ export function useMuonCaliming() {
         {
           onError: (error, variables, context) => {
             console.error('Error:', error.message);
-            call(
-              `The transaction was done unsuccessfully due to  this error ${error.message}`
-            );
+            call(`The transaction was done unsuccessfully.`);
           },
           onSuccess: async (data, variables, context) => {
             call(

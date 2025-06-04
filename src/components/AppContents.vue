@@ -17,6 +17,13 @@
   import {getTimezoneBias} from '../toolkits/timeBias';
   import {onWalletConnet} from '../toolkits/connectWalletMessage';
   // Load environment variables from the .env file
+  import {toTitleCase} from '../toolkits/caseToTitle';
+  import {
+    gettingRewardBalance,
+    gettingUnstakeBalance
+  } from '../web3/muonActions/readContractByname';
+  import fetchRewardData from '../toolkits/fetchRewardData';
+  import {useBlockNumber} from '@wagmi/vue';
 
   // Now you can access the environment variable
   let llmResponse: Message[];
@@ -32,17 +39,22 @@
   const scrollingDiv = ref<HTMLElement | null>(null);
   const scrollContainer = ref<HTMLElement | null>(null);
   let userWalletAddress: `0x${string}` | undefined = undefined;
+  let unstakeBalance: number;
+  let rewardBalance: number;
+  const aiResponse = ref(string);
   const userScrolled = ref(false);
   const pending = ref(false);
   const beforeFirstMessage = ref({
     content: import.meta.env.VITE_PROJECT_PREDEFINED_MESSAGES,
     condition: false
   });
+  const {data: blockNumber} = useBlockNumber();
 
   import {type ContrctNames} from '@/web3/writeContractNames';
   import {type FinalOutput, parseResponse} from '@/toolkits/decomposeText';
   import {alephZeroTestnet, flame} from 'viem/chains';
   import type {Message} from '@/models/message.model';
+  import {number, string} from 'zod';
   const {status, address} = useAccount();
   const chainId = useChainId({config});
   watch(status, async (newVal, preVal) => {
@@ -50,10 +62,12 @@
       console.log('connection status :', newVal);
       console.log('address', address.value);
       console.log(preVal);
-      if (newVal === 'connected')
+      if (newVal === 'connected') {
         await onSendHideUser(
-          `Event:The user entered with ${address.value} wallet address, run handle_wallet_connect tool, user timezone: +3:30, `
+          `Event:The user entered with ${address.value} wallet address, run handle_wallet_connect tool, user timezone:${getTimezoneBias()}, `
         );
+      }
+
       if (newVal === 'disconnected' && preVal == 'connected') {
         appStore.addError(
           'You have disconnected your wallet. refresh page and connect wallet'
@@ -64,11 +78,27 @@
       userWalletAddress = address.value;
     }
   });
-  function generateMarkdownTableFromArguments(argsObj: object): string {
-    let table = '| Parameter | Value |\n| --- | ----- |\n';
-    for (const [k, v] of Object.entries(argsObj)) {
-      table += `| ${k} | ${v} |\n`;
+
+  function modifyInputArgs(functionName: string, args: object) {
+    if (functionName === 'claim') {
+      return {Amount: unstakeBalance};
     }
+    if (functionName === 'claim_reward') {
+      return {Amount: rewardBalance};
+    }
+    return args;
+  }
+  //const modifiedArgs = modifyInputArgs(functionName, argsObj);
+
+  function generateMarkdownTableFromArguments(functionName: string, argsObj: object) {
+    console.log('The function name is:', functionName);
+    const modifiedArgs = modifyInputArgs(functionName, argsObj);
+    let table = '| Parameter | Value |\n| --- | ----- |\n';
+
+    for (const [k, v] of Object.entries(modifiedArgs)) {
+      table += `| ${toTitleCase(k)} | ${v} |\n`;
+    }
+
     return table;
   }
   interface ResMessageModel {
@@ -152,9 +182,8 @@
     pending.value = false;
     await nextTick();
     inputTextarea.value?.focus();
-    if (typeof modelOutput.functionName === 'string') {
+    if (containsTool(llmLastResponse)) {
       pending.value = true;
-      console.log('sth');
       inputTextarea.value?.blur();
     }
   }
@@ -174,12 +203,12 @@
       //sendRequestForTitle(input.value);
       input.value = '';
       //await sendRequestForResponse();
-      const messageout = await onWalletConnet(
+      const nodeInfoMessage = await onWalletConnet(
         address.value as `0x${string}`,
         chainId.value
       );
       await chatStore.updateLastMessageStream(
-        `Thanks for connecting your wallet!  ${messageout}`
+        `Node connected successfully. Here's everything you need to know about it. ${nodeInfoMessage}`
       );
     } catch (e) {
       if (e instanceof Error) {
@@ -257,12 +286,23 @@
             message.role === Role.assistant &&
             message.tool_calls != null &&
             message.tool_calls.length > 0 &&
-            message.tool_calls[0]['name'] == 'get_variables'
+            ['climable_time', 'get_variables'].includes(message.tool_calls[0]['name'])
           ) {
             console.log('the tool calls', message.tool_calls);
             message.role = 'hideAssistant';
           }
-          console.log(message.tool_calls);
+          if (userWalletAddress != null && chainId.value != null) {
+            unstakeBalance = await gettingUnstakeBalance(
+              chainId.value,
+              userWalletAddress as `0x${string}`
+            );
+            rewardBalance = await gettingRewardBalance(
+              chainId.value,
+              userWalletAddress as `0x${string}`
+            );
+          }
+
+          console.log(`###rewardBalance: ${rewardBalance}`);
           await chatStore.addMessage({
             role: message.role,
             content: message.content + ' ',
@@ -314,8 +354,7 @@
     onSend();
   };
 
-  function showConfirmationMessage(message: Message): string {
-    console.log();
+  function showConfirmationMessage(message: Message) {
     if (
       message.tool_calls === undefined ||
       message.tool_calls === null ||
@@ -326,8 +365,11 @@
     }
     return (
       message.content +
-      `\nPlease confirm the information below to proceed with  \`${message.tool_calls[0]['name']}\`:\n\n` +
-      generateMarkdownTableFromArguments(message.tool_calls[0]['args'])
+      `\nPlease review and confirm the information below to continue with  \`${message.tool_calls[0]['name']}\`:\n\n` +
+      generateMarkdownTableFromArguments(
+        message.tool_calls[0]['name'],
+        message.tool_calls[0]['args']
+      )
     );
   }
   function gettingToolName(message: Message) {
@@ -337,7 +379,7 @@
       message.tool_calls === null ||
       message.tool_calls?.length === 0
     ) {
-      console.log(message);
+      console.log('the_messages', message);
       return 'undefined';
     }
     console.log(message.role);

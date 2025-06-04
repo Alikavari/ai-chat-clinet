@@ -35,9 +35,7 @@ export function useMuonTransfer() {
         {
           onError: (error, variables, context) => {
             console.error('Error:', error.message);
-            call(
-              `The transaction was done unsuccessfully due to  this error ${error.message}`
-            );
+            call(`The transaction was done unsuccessfully.`);
           },
           onSuccess: (data, variables, context) => {
             call(

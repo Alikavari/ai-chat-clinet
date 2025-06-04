@@ -10,11 +10,38 @@ import {
 } from './requriements';
 
 import {w3bNumberFromBigint} from '../web3';
+import fetchRewardData from '../../toolkits/fetchRewardData';
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export async function gettingRewardBalance(
+  chainID: number,
+  userWalletAddress: `0x${string}`
+) {
+  const rewardBalanceRaw = await readContract(config as any, {
+    abi: stakingAbi,
+    address: MUON_NODE_STAKING_ADDRESS[chainID],
+    functionName: 'earned',
+    args: [userWalletAddress]
+  });
+  const decimalRewardBlance = w3bNumberFromBigint(rewardBalanceRaw).dsp;
+  return decimalRewardBlance;
+}
+export async function gettingUnstakeBalance(
+  chainID: number,
+  userWalletAddress: `0x${string}`
+) {
+  const unstakeBalanceRow = await readContract(config as any, {
+    abi: stakingAbi,
+    address: MUON_NODE_STAKING_ADDRESS[chainID],
+    functionName: 'pendingUnstakes',
+    args: [userWalletAddress]
+  });
+  const decimalUnstakeBalance = w3bNumberFromBigint(unstakeBalanceRow).dsp;
+  return decimalUnstakeBalance;
+}
 export async function getclimableTime(chainID: number, userWalletAddress: `0x${string}`) {
   const exitPeriod = await readContract(config as any, {
     abi: stakingAbi,
@@ -29,6 +56,15 @@ export async function getclimableTime(chainID: number, userWalletAddress: `0x${s
     args: [userWalletAddress]
   });
   const claimableTime = userUnstakeReqTime + exitPeriod;
+  const currentEpochSec = Math.floor(Date.now() / 1000);
+  console.log('###############', chainID, userWalletAddress);
+  const unstakeBalance = await gettingUnstakeBalance(chainID, userWalletAddress);
+  if (unstakeBalance === 0) {
+    return 'There is no unstake amount to claim';
+  }
+  if (currentEpochSec > claimableTime) {
+    return 'You can get your claim right now';
+  }
   const claimDate = new Date(Number(claimableTime) * 1000);
   const datePart = claimDate.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -45,7 +81,7 @@ export async function getclimableTime(chainID: number, userWalletAddress: `0x${s
 
   const formattedDate = `${datePart.replace(' ', '').replace(', ', ',')} - ${timePart}`;
   console.log('a', userUnstakeReqTime, ' ', exitPeriod);
-  return formattedDate;
+  return 'You can get your claim on ' + formattedDate;
 }
 
 export async function gettingUsers(userWalletAddress: `0x${string}`, chainID: number) {
@@ -93,19 +129,27 @@ export async function gettingNodeInfo(userWalletAddress: `0x${string}`, chainID:
     functionName: 'valueOfBondedToken',
     args: [tokenID]
   });
+  const decimalUnstakeBalance = await gettingUnstakeBalance(chainID, userWalletAddress);
+
   const decimalNodePower = w3bNumberFromBigint(rowNodePower).dsp;
   const decimalStakeAmount = w3bNumberFromBigint(rowStakedAmount).dsp;
 
+  const rewardBalance = await gettingRewardBalance(
+    chainID,
+    userWalletAddress as `0x${string}`
+  );
   return {
     stakerAddress,
     nodeAddress,
     peerId,
-    active: active ? 'online' : 'offline',
+    status: active ? 'Online' : 'Offline',
     tier,
     nodeId: Number(id),
-    nodePower: decimalNodePower,
-    stakedAmount: decimalStakeAmount,
-    balance: `${decimalBalance} MUON$`
+    nodePower: `${decimalNodePower} MUON$`,
+    stakedAmount: `${decimalStakeAmount} MUON$`,
+    balance: `${decimalBalance} MUON$`,
+    unstakeBalance: `${decimalUnstakeBalance} MUON$`,
+    rewardBalance: `${rewardBalance} MUON$`
     // pendingForClaimAmount: decimalPendingUnstakeAmount,
   };
 }
