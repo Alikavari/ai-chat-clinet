@@ -24,7 +24,9 @@
   } from '../web3/muonActions/readContractByname';
   import fetchRewardData from '../toolkits/fetchRewardData';
   import {useBlockNumber} from '@wagmi/vue';
-
+  import {getAccount} from '@wagmi/core';
+  const baseUrl = import.meta.env.VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL;
+  const confirmMessage = import.meta.env.VITE_PROJECT_CONFIRM_MESSAGE;
   // Now you can access the environment variable
   let llmResponse: Message[];
   let llmLastResponse: Message = {role: 'null', content: 'null'};
@@ -54,9 +56,10 @@
   import {type FinalOutput, parseResponse} from '@/toolkits/decomposeText';
   import {alephZeroTestnet, flame} from 'viem/chains';
   import type {Message} from '@/models/message.model';
-  import {number, string} from 'zod';
+  import {any, number, string} from 'zod';
   const {status, address} = useAccount();
   const chainId = useChainId({config});
+
   watch(status, async (newVal, preVal) => {
     if (newVal) {
       console.log('connection status :', newVal);
@@ -156,7 +159,7 @@
   const openai = new OpenAI({
     apiKey: settingsStore.apiKey,
     dangerouslyAllowBrowser: true,
-    baseURL: 'http://127.0.0.1:8000/v1'
+    baseURL: baseUrl
   });
 
   async function onSend() {
@@ -208,7 +211,7 @@
         chainId.value
       );
       await chatStore.updateLastMessageStream(
-        `Node connected successfully. Here's everything you need to know about it. ${nodeInfoMessage}`
+        ` ${nodeInfoMessage}`
       );
     } catch (e) {
       if (e instanceof Error) {
@@ -365,7 +368,7 @@
     }
     return (
       message.content +
-      `\nPlease review and confirm the information below to continue with  \`${message.tool_calls[0]['name']}\`:\n\n` +
+      `${confirmMessage} ${message.tool_calls[0]['name']}\`:\n\n` +
       generateMarkdownTableFromArguments(
         message.tool_calls[0]['name'],
         message.tool_calls[0]['args']

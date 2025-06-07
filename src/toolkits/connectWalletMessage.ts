@@ -7,14 +7,15 @@ function objectToMarkdownTable(obj: Record<string, any>): string {
   const header = '| Key | Value |';
   const separator = '| --- | --- |';
 
-  return [header, separator, ...rows].join('\n');
+  return ['\n', header, separator, ...rows].join('\n');
 }
 import {gettingNodeInfo, getclimableTime} from '../web3/muonActions/readContractByname';
-
+const noNodeMessage = import.meta.env.VITE_PROJECT_NO_NODE_MESSAGE;
+const whatIsMuonMessage = import.meta.env.VITE_PROJECT_WHAT_IS_MUON;
+const nodeInfoMessage = import.meta.env.VITE_PROJECT_NODE_INFO;
 export async function onWalletConnet(userWalletAddress: `0x${string}`, chainID: number) {
   const obj = await gettingNodeInfo(userWalletAddress, chainID);
   const cliamTime = await getclimableTime(chainID, userWalletAddress);
-  if (obj.nodeId == 0)
-    return `You haven’t set up a node yet. You can add one using the MUON chatbot.\n Your balance is ${obj.balance} `;
-  return 'Here is yout node inof. \n' + objectToMarkdownTable(obj) + `\n\n${cliamTime}`;
+  if (obj.nodeId == 0) return `${noNodeMessage}\n  ${obj.balance} ${whatIsMuonMessage}`;
+  return `${nodeInfoMessage}` + objectToMarkdownTable(obj) + `\n\n${cliamTime}`;
 }

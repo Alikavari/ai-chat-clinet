@@ -1,9 +1,9 @@
 import {http, createConfig} from '@wagmi/vue';
-import {avalancheFuji} from '@wagmi/vue/chains';
+import {avalanche, avalancheFuji} from '@wagmi/vue/chains';
 
 export const config = createConfig({
-  chains: [avalancheFuji],
+  chains: [avalanche],
   transports: {
-    [avalancheFuji.id]: http()
+    [avalanche.id]: http()
   }
 });
