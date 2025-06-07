@@ -25,7 +25,11 @@
   import fetchRewardData from '../toolkits/fetchRewardData';
   import {useBlockNumber} from '@wagmi/vue';
   import {getAccount} from '@wagmi/core';
-  const baseUrl = import.meta.env.VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL;
+  import * as envts from '../../env.ts'
+
+  // TODO: use it if after fix reading env from docker build
+  //const baseUrl = import.meta.env.VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL;
+  const baseUrl = envts.PROXY_URL_DEV_OPEN_AI_URL;
   const confirmMessage = import.meta.env.VITE_PROJECT_CONFIRM_MESSAGE;
   // Now you can access the environment variable
   let llmResponse: Message[];

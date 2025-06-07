@@ -1,13 +1,38 @@
-services:
-  app:
-    build: "."
-    ports:
-      - "${PORT}:5173"
+version: '3.9'
 
-  done:
+x-logging: &default-logging
+  driver:     "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  muon-chatbot-frontend:
+    container_name:     'muon-chatbot-frontend'
     depends_on:
-      app:
-        condition: service_started
-    image: busybox:glibc
-    command: >
-      echo 'open http://localhost:${PORT}'
+      - muon-chatbot-backend
+    pull_policy:        always
+    platform:           linux/amd64
+    restart:            always
+    # env_file:
+    #   - ./.env
+    ports:
+      - 5173:5173
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    logging:            *default-logging
+
+  muon-chatbot-backend:
+    container_name:     'muon-chatbot-backend'
+    image:              ghcr.io/mohsennz/muon-chatbot-backend:latest
+    pull_policy:        always
+    restart:            always
+    # stop_grace_period:  20s
+    environment:
+      OPENAI_API_KEY:   put-your-api-key
+      # NOTE: after change, do change VITE_PROJECT_CHAIN_ID in .env and rebuild frontend docker image
+      CHAIN_ID:         43114
+    ports:
+      - 8000:8000
+    logging:            *default-logging

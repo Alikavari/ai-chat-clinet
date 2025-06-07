@@ -1,14 +1,16 @@
-FROM node:22-alpine3.19 AS builder
+FROM node:23.11-alpine AS builder
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
 COPY package*.json .
 
-RUN npm install
+RUN pnpm install
 
 COPY . .
 
-RUN npm run build
+RUN pnpm run build-only
 
 FROM caddy:2.8.4-alpine
 

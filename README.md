@@ -28,14 +28,8 @@ npm run dev
 npm run build
 ```
 
-### Run with Docker
+### Run Backend&Fronend docker compose
 
-```sh
-docker compose up # http://localhost:5173
-```
-
-With a custom port:
-
-```sh
-PORT=8080 docker compose up
+```bash
+docker-compose up --build -d
 ```
