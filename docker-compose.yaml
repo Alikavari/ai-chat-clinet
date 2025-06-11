@@ -14,8 +14,6 @@ services:
     pull_policy:        always
     platform:           linux/amd64
     restart:            always
-    # env_file:
-    #   - ./.env
     ports:
       - 5173:5173
     build:
@@ -31,7 +29,6 @@ services:
     # stop_grace_period:  20s
     environment:
       OPENAI_API_KEY:   put-your-api-key
-      # NOTE: after change, do change VITE_PROJECT_CHAIN_ID in .env and rebuild frontend docker image
       CHAIN_ID:         43114
     ports:
       - 8000:8000
