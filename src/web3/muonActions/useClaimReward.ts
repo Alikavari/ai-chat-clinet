@@ -34,7 +34,7 @@ export function useMuonCalimingReward() {
     }
 
     try {
-      const response = await fetchRewardData(userWalletAddress, blockNumber);
+      const response = await fetchRewardData(userWalletAddress, blockNumber.value);
       console.log('response:  ', response);
       if (response === false) {
         call('The transaction was done unsuccessfully due to an unspecified problem');
