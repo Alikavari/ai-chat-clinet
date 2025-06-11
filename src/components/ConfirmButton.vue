@@ -61,7 +61,7 @@
         console.log('calling boost wallet address: ', props.userWalletAddress);
         tryClaim(props.userWalletAddress, props.call);
       } else props.call('the transaction faid due to wallet connection problem');
-    } else if (props.toolName === '') {
+    } else if (props.toolName === 'claim_reward') {
       if (props.userWalletAddress != undefined) {
         await tryClaimReward(props.userWalletAddress, props.call);
       }
