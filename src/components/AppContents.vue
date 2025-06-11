@@ -25,18 +25,18 @@
   import fetchRewardData from '../toolkits/fetchRewardData';
   import {useBlockNumber} from '@wagmi/vue';
   import {getAccount} from '@wagmi/core';
-  import * as envts from '../../env.ts'
+  import * as envts from '../../env.js';
 
-  // TODO: use it if after fix reading env from docker build
-  //const baseUrl = import.meta.env.VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL;
-  const baseUrl = envts.PROXY_URL_DEV_OPEN_AI_URL;
-  const confirmMessage = import.meta.env.VITE_PROJECT_CONFIRM_MESSAGE;
+  //TODO: use it if after fix reading env from docker build
+  //const baseUrl = envts.VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL;
+  const baseUrl = envts.VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL;
+  const confirmMessage = envts.VITE_PROJECT_CONFIRM_MESSAGE;
   // Now you can access the environment variable
   let llmResponse: Message[];
   let llmLastResponse: Message = {role: 'null', content: 'null'};
-  const chatTitle = import.meta.env.VITE_PROJECT_CHATBOT_TITLE;
-  const textBoxPlaceHolderBegin = import.meta.env.VITE_PROJECT_PLACEHOLDER_BEGIN;
-  const textBoxPlaceHolderPending = import.meta.env.VITE_PROJECT_PLACEHOLDER_PENDING;
+  const chatTitle = envts.VITE_PROJECT_CHATBOT_TITLE;
+  const textBoxPlaceHolderBegin = envts.VITE_PROJECT_PLACEHOLDER_BEGIN;
+  const textBoxPlaceHolderPending = envts.VITE_PROJECT_PLACEHOLDER_PENDING;
   const isVisible = ref(false); // Define the reactive variable
   const input = ref('');
   const showChatbox = ref(true);
@@ -50,8 +50,9 @@
   const aiResponse = ref(string);
   const userScrolled = ref(false);
   const pending = ref(false);
+  const haveTool = ref(false);
   const beforeFirstMessage = ref({
-    content: import.meta.env.VITE_PROJECT_PREDEFINED_MESSAGES,
+    content: envts.VITE_PROJECT_PREDEFINED_MESSAGES,
     condition: false
   });
   const {data: blockNumber} = useBlockNumber();
@@ -64,11 +65,18 @@
   const {status, address} = useAccount();
   const chainId = useChainId({config});
 
+  watch(haveTool, async (newVal) => {
+    if (newVal === true) {
+      await nextTick(); // Wait for DOM update
+      autoScrollDown();
+    }
+  });
+
   watch(status, async (newVal, preVal) => {
     if (newVal) {
-      console.log('connection status :', newVal);
-      console.log('address', address.value);
-      console.log(preVal);
+      //console.log('connection status :', newVal);
+      //console.log('address', address.value);
+      //console.log(preVal);
       if (newVal === 'connected') {
         await onSendHideUser(
           `Event:The user entered with ${address.value} wallet address, run handle_wallet_connect tool, user timezone:${getTimezoneBias()}, `
@@ -77,7 +85,7 @@
 
       if (newVal === 'disconnected' && preVal == 'connected') {
         appStore.addError(
-          'You have disconnected your wallet. refresh page and connect wallet'
+          'You have disconnected your wallet. Refresh page and connect wallet'
         );
         showChatbox.value = false;
         //pass
@@ -98,7 +106,7 @@
   //const modifiedArgs = modifyInputArgs(functionName, argsObj);
 
   function generateMarkdownTableFromArguments(functionName: string, argsObj: object) {
-    console.log('The function name is:', functionName);
+    //console.log('The function name is:', functionName);
     const modifiedArgs = modifyInputArgs(functionName, argsObj);
     let table = '| Parameter | Value |\n| --- | ----- |\n';
 
@@ -214,9 +222,7 @@
         address.value as `0x${string}`,
         chainId.value
       );
-      await chatStore.updateLastMessageStream(
-        ` ${nodeInfoMessage}`
-      );
+      await chatStore.updateLastMessageStream(` ${nodeInfoMessage}`);
     } catch (e) {
       if (e instanceof Error) {
         appStore.addError(e.message);
@@ -226,6 +232,7 @@
     pending.value = false;
     await nextTick();
     inputTextarea.value?.focus();
+    autoScrollDown();
   }
   async function onSendMetamask(metamaskMessage: string) {
     pending.value = true;
@@ -234,7 +241,7 @@
       userScrolled.value = false;
       inputTextarea.value?.blur();
       let len = chatStore.currentChat?.messages.length as number;
-      console.log(chatStore.currentChat?.messages[len - 1].content);
+      //console.log(chatStore.currentChat?.messages[len - 1].content);
       await chatStore.addMessage({
         role: 'tool',
         content: metamaskMessage,
@@ -287,7 +294,7 @@
         let content = chunk.choices[0]?.delta?.content || ' ';
 
         llmResponse = JSON.parse(content);
-        console.log('content:\n', llmResponse);
+        //console.log('content:\n', llmResponse);
         for (const message of llmResponse) {
           if (
             message.role === Role.assistant &&
@@ -295,7 +302,7 @@
             message.tool_calls.length > 0 &&
             ['climable_time', 'get_variables'].includes(message.tool_calls[0]['name'])
           ) {
-            console.log('the tool calls', message.tool_calls);
+            //console.log('the tool calls', message.tool_calls);
             message.role = 'hideAssistant';
           }
           if (userWalletAddress != null && chainId.value != null) {
@@ -309,14 +316,14 @@
             );
           }
 
-          console.log(`###rewardBalance: ${rewardBalance}`);
+          //console.log(`###rewardBalance: ${rewardBalance}`);
           await chatStore.addMessage({
             role: message.role,
             content: message.content + ' ',
             tool_calls: message.tool_calls,
             tool_call_id: message.tool_call_id
           });
-          console.log(chatStore.currentChat.messages);
+          //console.log(chatStore.currentChat.messages);
         }
         llmLastResponse = llmResponse[llmResponse.length - 1];
 
@@ -367,12 +374,12 @@
       message.tool_calls === null ||
       message.tool_calls?.length === 0
     ) {
-      console.log('content', message.content);
+      //console.log('content', message.content);
       return message.content as string;
     }
     return (
       message.content +
-      `${confirmMessage} ${message.tool_calls[0]['name']}\`:\n\n` +
+      `${confirmMessage} ${message.tool_calls[0]['name']}\:\n\n` +
       generateMarkdownTableFromArguments(
         message.tool_calls[0]['name'],
         message.tool_calls[0]['args']
@@ -386,10 +393,10 @@
       message.tool_calls === null ||
       message.tool_calls?.length === 0
     ) {
-      console.log('the_messages', message);
+      //console.log('the_messages', message);
       return 'undefined';
     }
-    console.log(message.role);
+    //console.log(message.role);
     return message.tool_calls[0]['name'];
   }
 
@@ -406,6 +413,7 @@
     return message.tool_calls[0]['args'];
   }
   function containsTool(message: Message) {
+    haveTool.value = false;
     if (
       message === undefined ||
       message.tool_calls == undefined ||
@@ -414,7 +422,7 @@
     ) {
       return false;
     }
-
+    haveTool.value = true;
     return true;
   }
 </script>

@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-//const BASEURL = import.meta.env.VITE_PROJECT_APP_MUON_V1_URL_DEV;
-const BASEURL = 'https://app.muon.net/';
+import * as envts from '../../env.js';
+const BASEURL = envts.VITE_PROJECT_APP_MUON_V1_URL_DEV;
+
 // console.log(BASEURL);
 // import.meta.env.NODE_ENV !== 'production'
 //   ? import.meta.env.VITE_PROJECT_APP_MUON_V1_URL_DEV
@@ -9,10 +10,10 @@ const BASEURL = 'https://app.muon.net/';
 
 const fetchRewardData = async (stakerAddress: any, blockNumber: any) => {
   const response = await axios.get(
-    `${BASEURL}/v1/?app=pion_tss_reward_oracle&method=reward&params[stakerAddress]=${stakerAddress}&params[blockNumber]=${blockNumber.toString()}`
+    `${BASEURL}/v1/?app=muon_tss_reward_oracle&method=reward&params[stakerAddress]=${stakerAddress}&params[blockNumber]=${blockNumber.toString()}`
   );
   // const response = await axios.get(
-  //   `${BASEURL}/poa/?app=tss_reward_oracle&method=reward&params[stakerAddress]=${staker}&params[blockNumber]=${blockNumber}`
+  //   ${BASEURL}/poa/?app=tss_reward_oracle&method=reward&params[stakerAddress]=${staker}&params[blockNumber]=${blockNumber}
   // );
   if (!response.data.success) return false;
   else {

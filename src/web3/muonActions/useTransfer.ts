@@ -1,3 +1,4 @@
+import {getCurrentChainId} from '@/chains';
 import {
   useWriteContract,
   useChainId,
@@ -9,7 +10,7 @@ import {
 export function useMuonTransfer() {
   const {writeContractAsync} = useWriteContract();
   const chainID = useChainId({config});
-  console.log(chainID.value);
+  //console.log(chainID.value);
   async function tryTransfer(
     walletAddress: `0x${string}`,
     value: bigint,
@@ -29,8 +30,8 @@ export function useMuonTransfer() {
           abi,
           address: ALICE_ADDRESS[chainID.value],
           functionName: 'transfer',
-          args: [walletAddress, value]
-          //chainId:
+          args: [walletAddress, value],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {

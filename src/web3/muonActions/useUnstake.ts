@@ -6,7 +6,7 @@ import {
   stakingAbi,
   MUON_NODE_STAKING_ADDRESS,
   getclimableTime,
-  readContract
+  getCurrentChainId
 } from './requriements';
 
 export function useMuonUnstake() {
@@ -30,8 +30,8 @@ export function useMuonUnstake() {
           abi: stakingAbi,
           address: MUON_NODE_STAKING_ADDRESS[chainID.value],
           functionName: 'unstake',
-          args: [amount]
-          //chainId:
+          args: [amount],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {

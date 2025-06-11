@@ -6,7 +6,7 @@ import {
   MUON_NODE_STAKING_ADDRESS,
   MUON_NODE_MANAGER_ADDRESS,
   ALICE_ADDRESS,
-  readContract
+  readContractOnCurrentChainId
 } from './requriements';
 
 import {w3bNumberFromBigint} from '../web3';
@@ -20,7 +20,7 @@ export async function gettingRewardBalance(
   chainID: number,
   userWalletAddress: `0x${string}`
 ) {
-  const rewardBalanceRaw = await readContract(config as any, {
+  const rewardBalanceRaw = await readContractOnCurrentChainId(config as any, {
     abi: stakingAbi,
     address: MUON_NODE_STAKING_ADDRESS[chainID],
     functionName: 'earned',
@@ -33,7 +33,7 @@ export async function gettingUnstakeBalance(
   chainID: number,
   userWalletAddress: `0x${string}`
 ) {
-  const unstakeBalanceRow = await readContract(config as any, {
+  const unstakeBalanceRow = await readContractOnCurrentChainId(config as any, {
     abi: stakingAbi,
     address: MUON_NODE_STAKING_ADDRESS[chainID],
     functionName: 'pendingUnstakes',
@@ -43,13 +43,13 @@ export async function gettingUnstakeBalance(
   return decimalUnstakeBalance;
 }
 export async function getclimableTime(chainID: number, userWalletAddress: `0x${string}`) {
-  const exitPeriod = await readContract(config as any, {
+  const exitPeriod = await readContractOnCurrentChainId(config as any, {
     abi: stakingAbi,
     address: MUON_NODE_STAKING_ADDRESS[chainID],
     functionName: 'exitPendingPeriod',
     args: []
   });
-  const userUnstakeReqTime = await readContract(config as any, {
+  const userUnstakeReqTime = await readContractOnCurrentChainId(config as any, {
     abi: stakingAbi,
     address: MUON_NODE_STAKING_ADDRESS[chainID],
     functionName: 'unstakeReqTimes',
@@ -57,13 +57,13 @@ export async function getclimableTime(chainID: number, userWalletAddress: `0x${s
   });
   const claimableTime = userUnstakeReqTime + exitPeriod;
   const currentEpochSec = Math.floor(Date.now() / 1000);
-  console.log('###############', chainID, userWalletAddress);
+  //console.log('###############', chainID, userWalletAddress);
   const unstakeBalance = await gettingUnstakeBalance(chainID, userWalletAddress);
   if (unstakeBalance === 0) {
-    return 'There is no unstake amount to claim';
+    return 'No un-staked amount to claim.';
   }
   if (currentEpochSec > claimableTime) {
-    return 'You can get your claim right now';
+    return 'Your claim is ready; go ahead and grab it!';
   }
   const claimDate = new Date(Number(claimableTime) * 1000);
   const datePart = claimDate.toLocaleDateString('en-US', {
@@ -89,7 +89,7 @@ export async function gettingUsers(userWalletAddress: `0x${string}`, chainID: nu
 }
 export async function gettingBalance(userWalletAddress: `0x${string}`, chainID: number) {
   const aliceAddress = ALICE_ADDRESS[chainID];
-  const rowBalance = await readContract(config as any, {
+  const rowBalance = await readContractOnCurrentChainId(config as any, {
     abi: aliceAbi,
     address: aliceAddress,
     functionName: 'balanceOf',
@@ -104,7 +104,7 @@ export async function gettingNodeInfo(userWalletAddress: `0x${string}`, chainID:
   const aliceAddress = ALICE_ADDRESS[chainID];
 
   // stakerAddressInfo
-  const stakerInfo = await readContract(config as any, {
+  const stakerInfo = await readContractOnCurrentChainId(config as any, {
     abi: managerAbi,
     address: managerAddress,
     functionName: 'stakerAddressInfo',
@@ -113,17 +113,15 @@ export async function gettingNodeInfo(userWalletAddress: `0x${string}`, chainID:
 
   const {id, stakerAddress, nodeAddress, peerId, active, tier} = stakerInfo;
   const decimalBalance = await gettingBalance(userWalletAddress, chainID);
-  const [rowNodePower, untitle1, untitle2, untitle3, tokenID] = await readContract(
-    config as any,
-    {
+  const [rowNodePower, untitle1, untitle2, untitle3, tokenID] =
+    await readContractOnCurrentChainId(config as any, {
       abi: stakingAbi,
       address: stakingAddress,
       functionName: 'users',
       args: [userWalletAddress]
-    }
-  );
+    });
 
-  const rowStakedAmount = await readContract(config as any, {
+  const rowStakedAmount = await readContractOnCurrentChainId(config as any, {
     abi: stakingAbi,
     address: stakingAddress,
     functionName: 'valueOfBondedToken',

@@ -1,12 +1,13 @@
 import {
   useWriteContract,
-  readContract,
+  readContractOnCurrentChainId,
   useChainId,
   config,
   stakingAbi as abi,
   aliceAbi,
   MUON_NODE_STAKING_ADDRESS,
-  ALICE_ADDRESS
+  ALICE_ADDRESS,
+  getCurrentChainId
 } from './requriements';
 
 export function useMuonBoost() {
@@ -17,12 +18,11 @@ export function useMuonBoost() {
     boostAmount: bigint,
     call: (input: string) => void
   ) {
-    const allowanceAmount = await readContract(config as any, {
+    const allowanceAmount = await readContractOnCurrentChainId(config as any, {
       abi: aliceAbi,
       address: ALICE_ADDRESS[chainID.value],
       functionName: 'allowance',
-      args: [userWalletAddress, MUON_NODE_STAKING_ADDRESS[chainID.value]],
-      account: userWalletAddress
+      args: [userWalletAddress, MUON_NODE_STAKING_ADDRESS[chainID.value]]
     });
     console.log('allowance: ', allowanceAmount);
     console.log('boost: ', boostAmount);
@@ -39,8 +39,8 @@ export function useMuonBoost() {
           abi,
           address: MUON_NODE_STAKING_ADDRESS[chainID.value], // MUON_NODE_STAKING_ADDRESS[43113],
           functionName: 'lockToBondedToken',
-          args: [[ALICE_ADDRESS[chainID.value]], [boostAmount]]
-          //chainId:
+          args: [[ALICE_ADDRESS[chainID.value]], [boostAmount]],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {

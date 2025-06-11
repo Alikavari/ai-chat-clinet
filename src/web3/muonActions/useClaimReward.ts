@@ -4,7 +4,8 @@ import {
   config,
   stakingAbi,
   MUON_NODE_STAKING_ADDRESS,
-  readContract
+  readContractOnCurrentChainId,
+  getCurrentChainId
 } from './requriements';
 
 import {useBlockNumber} from '@wagmi/vue';
@@ -18,7 +19,7 @@ export function useMuonCalimingReward() {
     userWalletAddress: `0x${string}`,
     call: (input: string) => void
   ) {
-    const pendingUnstakes = await readContract(config as any, {
+    const pendingUnstakes = await readContractOnCurrentChainId(config as any, {
       abi: stakingAbi,
       address: MUON_NODE_STAKING_ADDRESS[chainID.value],
       functionName: 'earned',
@@ -34,6 +35,7 @@ export function useMuonCalimingReward() {
 
     try {
       const response = await fetchRewardData(userWalletAddress, blockNumber);
+      console.log('response:  ', response);
       if (response === false) {
         call('The transaction was done unsuccessfully due to an unspecified problem');
         return;
@@ -52,8 +54,8 @@ export function useMuonCalimingReward() {
               owner: response.owner,
               nonce: response.nonce
             }
-          ]
-          //chainId:
+          ],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {

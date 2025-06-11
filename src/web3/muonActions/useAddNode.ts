@@ -3,7 +3,8 @@ import {
   useChainId,
   config,
   stakingAbi as abi,
-  MUON_NODE_STAKING_ADDRESS
+  MUON_NODE_STAKING_ADDRESS,
+  getCurrentChainId
 } from './requriements';
 import {checkIPwithNodeSpecificationsAPI} from '../../apis';
 
@@ -39,8 +40,8 @@ export function useMuonAddNode() {
           abi,
           address: MUON_NODE_STAKING_ADDRESS[chainID.value], // MUON_NODE_STAKING_ADDRESS[43113],
           functionName: 'addMuonNodeByToken',
-          args: [nodeAddress, peerID, amount]
-          //chainId:
+          args: [nodeAddress, peerID, amount],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {

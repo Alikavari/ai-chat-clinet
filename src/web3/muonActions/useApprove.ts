@@ -4,7 +4,8 @@ import {
   config,
   aliceAbi,
   ALICE_ADDRESS,
-  MUON_NODE_STAKING_ADDRESS
+  MUON_NODE_STAKING_ADDRESS,
+  getCurrentChainId
 } from './requriements';
 
 export function useMuonApprove() {
@@ -24,8 +25,8 @@ export function useMuonApprove() {
           abi: aliceAbi,
           address: ALICE_ADDRESS[chainID.value],
           functionName: 'approve',
-          args: [MUON_NODE_STAKING_ADDRESS[chainID.value], amount]
-          //chainId:
+          args: [MUON_NODE_STAKING_ADDRESS[chainID.value], amount],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {

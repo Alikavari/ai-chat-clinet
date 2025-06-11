@@ -1,1 +1,23 @@
-export const PROXY_URL_DEV_OPEN_AI_URL = 'http://127.0.0.2:8000/v1';
+export const VITE_PROJECT_PROXY_URL_DEV_PORT = 5173;
+export const VITE_PROJECT_CHAIN_ID = 43113;
+export const VITE_PROJECT_PROXY_URL_DEV_OPEN_AI_URL = 'http://127.0.0.1:8000/v1';
+export const VITE_PROJECT_PROXY_URL_DEV = 'https://pion-test.muon.net';
+export const VITE_PROJECT_ALICE_URL_DEV = 'https://alice-test.muon.net/';
+export const VITE_PROJECT_APP_MUON_V1_URL_DEV = 'https://app.muon.net/';
+export const VITE_PROJECT_BASE_URL = '/dashboard';
+export const VITE_PROJECT_SIGN_MESSAGE =
+  'Please sign this message to verify ownership of your Ethereum address to verify its uniqueness for PION.';
+
+export const VITE_PROJECT_CHATBOT_TITLE =
+  'Welcome to Muon Dock3. What would you like to do today?';
+export const VITE_PROJECT_PLACEHOLDER_BEGIN = 'Ask Anything About MUON';
+export const VITE_PROJECT_PLACEHOLDER_PENDING = 'Answering ...';
+export const VITE_PROJECT_PREDEFINED_MESSAGES = 'Loading ...';
+export const VITE_PROJECT_CONFIRM_MESSAGE =
+  '\nPlease review and confirm the information below to continue with ';
+export const VITE_PROJECT_NO_NODE_MESSAGE =
+  'You haven’t set up a node yet. You can add one using the MUON Dock3.\n Your balance is';
+export const VITE_PROJECT_NODE_INFO =
+  "Node connected successfully. Here's everything you need to know about it.";
+export const VITE_PROJECT_WHAT_IS_MUON =
+  'MUON is a request-based, general-purpose validation layer designed for the intent-centric economy. It offers a fully programmable, chain-agnostic architecture with modular security — empowering developers and users with flexible validation across ecosystems.';

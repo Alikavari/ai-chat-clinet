@@ -9,7 +9,8 @@ export {
   MUON_NODE_MANAGER_ADDRESS
 } from '../../addresses';
 export {useWriteContract, useChainId} from '@wagmi/vue';
-export {readContract} from '@wagmi/core';
+export {readContractOnCurrentChainId} from './readContractOnCurrentChianId';
 
 export {aliceAbi, stakingAbi, managerAbi};
 export {getclimableTime} from './readContractByname';
+export {getCurrentChainId} from '@/chains';

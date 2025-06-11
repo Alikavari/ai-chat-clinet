@@ -5,7 +5,8 @@ import {
   config,
   stakingAbi,
   MUON_NODE_STAKING_ADDRESS,
-  readContract
+  readContractOnCurrentChainId,
+  getCurrentChainId
 } from './requriements';
 
 export function useMuonCaliming() {
@@ -15,7 +16,7 @@ export function useMuonCaliming() {
     userWalletAddress: `0x${string}`,
     call: (input: string) => void
   ) {
-    const pendingUnstakes = await readContract(config as any, {
+    const pendingUnstakes = await readContractOnCurrentChainId(config as any, {
       abi: stakingAbi,
       address: MUON_NODE_STAKING_ADDRESS[chainID.value],
       functionName: 'pendingUnstakes',
@@ -33,8 +34,8 @@ export function useMuonCaliming() {
           abi: stakingAbi,
           address: MUON_NODE_STAKING_ADDRESS[chainID.value],
           functionName: 'claimUnstake',
-          args: []
-          //chainId:
+          args: [],
+          chainId: getCurrentChainId()
         },
         {
           onError: (error, variables, context) => {
