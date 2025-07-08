@@ -143,11 +143,11 @@ export async function gettingNodeInfo(userWalletAddress: `0x${string}`, chainID:
     status: active ? 'Online' : 'Offline',
     tier,
     nodeId: Number(id),
-    nodePower: `${decimalNodePower} MUON$`,
-    stakedAmount: `${decimalStakeAmount} MUON$`,
-    balance: `${decimalBalance} MUON$`,
-    unstakeBalance: `${decimalUnstakeBalance} MUON$`,
-    rewardBalance: `${rewardBalance} MUON$`
+    nodePower: `${decimalNodePower} $MUON`,
+    stakedAmount: `${decimalStakeAmount} $MUON`,
+    balance: `${decimalBalance} $MUON`,
+    unstakeBalance: `${decimalUnstakeBalance} $MUON`,
+    rewardBalance: `${rewardBalance} $MUON`
     // pendingForClaimAmount: decimalPendingUnstakeAmount,
   };
 }

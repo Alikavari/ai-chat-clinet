@@ -20,4 +20,4 @@ export const VITE_PROJECT_NO_NODE_MESSAGE =
 export const VITE_PROJECT_NODE_INFO =
   "Node connected successfully. Here's everything you need to know about it.";
 export const VITE_PROJECT_WHAT_IS_MUON =
-  'MUON is a request-based, general-purpose validation layer designed for the intent-centric economy. It offers a fully programmable, chain-agnostic architecture with modular security — empowering developers and users with flexible validation across ecosystems.';
+  'Muon is a request-based, general-purpose validation layer designed for the intent-centric economy. It offers a fully programmable, chain-agnostic architecture with modular security — empowering developers and users with flexible validation across ecosystems.';

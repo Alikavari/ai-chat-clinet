@@ -300,7 +300,9 @@
             message.role === Role.assistant &&
             message.tool_calls != null &&
             message.tool_calls.length > 0 &&
-            ['climable_time', 'get_variables'].includes(message.tool_calls[0]['name'])
+            ['climable_time', 'get_variables', 'check_for_adding_node'].includes(
+              message.tool_calls[0]['name']
+            )
           ) {
             //console.log('the tool calls', message.tool_calls);
             message.role = 'hideAssistant';
