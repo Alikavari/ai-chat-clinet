@@ -31,5 +31,6 @@ npm run build
 ### Run Backend&Fronend docker compose
 
 ```bash
+docker-compose pull # to get last images 
 docker-compose up --build -d
 ```
