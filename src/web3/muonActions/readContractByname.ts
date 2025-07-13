@@ -60,7 +60,7 @@ export async function getclimableTime(chainID: number, userWalletAddress: `0x${s
   //console.log('###############', chainID, userWalletAddress);
   const unstakeBalance = await gettingUnstakeBalance(chainID, userWalletAddress);
   if (unstakeBalance === 0) {
-    return 'No un-staked amount to claim.';
+    return 'No unstake request amount to claim.';
   }
   if (currentEpochSec > claimableTime) {
     return 'Your claim is ready; go ahead and grab it!';
@@ -146,7 +146,7 @@ export async function gettingNodeInfo(userWalletAddress: `0x${string}`, chainID:
     nodePower: `${decimalNodePower} $MUON`,
     stakedAmount: `${decimalStakeAmount} $MUON`,
     balance: `${decimalBalance} $MUON`,
-    unstakeBalance: `${decimalUnstakeBalance} $MUON`,
+    unstakeRequestAmount: `${decimalUnstakeBalance} $MUON`,
     rewardBalance: `${rewardBalance} $MUON`
     // pendingForClaimAmount: decimalPendingUnstakeAmount,
   };
